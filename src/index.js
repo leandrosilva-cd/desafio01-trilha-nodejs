@@ -18,6 +18,12 @@ function checksExistsUserAccount(request, response, next) {
 app.post('/users', (request, response) => {
   const {name, username} = request.body;
 
+  const userAlreadyExists = users.some(user => user.username === username);
+
+  if (userAlreadyExists) {
+    return response.status(400).json({error: "User already exists!"});
+  }
+
   users.push(
     {
       name,
@@ -42,7 +48,7 @@ app.post('/todos', checksExistsUserAccount, (request, response) => {
   
   const {title, deadline} = request.body;
   const {username} = request.headers;
-  const user = users.find(user => user.username == username);
+  const user = users.find(user => user.username === username);
   const todo = {
     id: uuidv4(),
     title,
@@ -58,15 +64,39 @@ app.post('/todos', checksExistsUserAccount, (request, response) => {
 });
 
 app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
-  // Complete aqui
+  const {title, deadline} = request.body;
+  const {username} = request.headers;
+  const {id} = request.params;
+
+  const user = users.find(user => user.username === username);
+  const todo = user.todos.find(todo => todo.id === id);
+
+  todo.title = title;
+  todo.deadline = deadline;
+  return response.status(201).send();
 });
 
 app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
-  // Complete aqui
+  const {username} = request.headers;
+  const {id} = request.params;
+  const {done} = request.body;
+
+  const user = users.find(user => user.username === username);
+  const todo = user.todos.find(todo => todo.id === id);
+
+  todo.done = done;
+  return response.status(201).send();
 });
 
 app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
-  // Complete aqui
+  const {username} = request.headers;
+  const {id} = request.params;
+
+  const user = users.find(user => user.username === username);
+  const todo = user.todos.find(todo => todo.id === id);
+
+  user.todos.splice(todo, 1);
+  return response.status(201).send();
 });
 
 module.exports = app;
